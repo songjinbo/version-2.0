@@ -43,6 +43,8 @@ extern vector<double> voxel_z;
 //本cpp文件中用到的变量
 string outputfile1_3DAStar = "./data/allPoint.txt";
 string outputfile2_3DAStar = "./data/drawPoint.txt";
+string endPoint_3DAStar = "./data/endPoint.txt";
+
 double minValue[3]; //x y z 的最小值
 double maxValue[3]; //x y z 的最大值
 
@@ -122,13 +124,6 @@ bool Star::Creatgraph()
 	xDepth = (int)((maxValue[0] - minValue[0])/sizeofBlock + 0.5);
 	yDepth = (int)((maxValue[1] - minValue[1])/sizeofBlock + 0.5);
 	zDepth = (int)((maxValue[2] - minValue[2])/sizeofBlock + 0.5);
-
-	ofstream f_test1("F:\\\\data\\vector_dialog.txt");
-	for (i = 0; i < len; i++)
-	{
-		f_test1 << voxel_x[i] << " " << voxel_y[i] << " " << voxel_z[i] << "\n";
-	}
-	f_test1.close();
 
 	//-----------allocation memory ---------------------
 	//动态分配内存时禁止强制结束
@@ -233,42 +228,6 @@ bool Star::Creatgraph()
 		tenInf[2] = int((*iter_z - minValue[2]) / sizeofBlock + 0.5);
 		array[tenInf[2]][tenInf[1]][tenInf[0]] = 0; //!!!  z y x
 	}
-
-	ofstream fs_test("F:\\\\data\\array_dialog.txt");
-	for (i = 0; i < zDepth; i++)
-		for (j = 0; j < yDepth; j++)
-			for (k = 0; k < xDepth; k++)
-			{
-				if (progress_status == is_stopped) //循环检测标志位progress_status，这一步必须要有，postquitmessage()无法立即结束外层for循环
-				{
-					path_plan_status = path_plan_is_stopped;
-					for (k = 0; k<zDepth; k++)
-					{
-
-						for (i = 0; i<yDepth; i++)
-						{
-							delete  nodes[k][i];
-						}
-						delete nodes[k];
-					}
-					delete nodes;
-
-					for (k = 0; k<zDepth; k++)
-					{
-
-						for (i = 0; i<yDepth; i++)
-						{
-							delete  array[k][i];
-						}
-						delete array[k];
-					}
-					delete array;
-					return 0;
-				}
-
-				fs_test << array[i][j][k] << "\n";
-			}
-	fs_test.close();
 
 	//---------------将每个点的位置等赋值--------------
 
@@ -434,6 +393,13 @@ bool Star::Creatgraph()
 		endp = nodes[mediup[2]][mediup[1]][mediup[0]];//重新设置开始、结束结点
 		old_end = endp;
 		Find_path(&startp);
+
+		//保存每一帧规划出的终点
+		FILE* fp_endpoint;
+		if ((fp_endpoint = fopen(endPoint_3DAStar.c_str(), "a")) != 0)
+			fprintf(fp_endpoint, "%8.2f%8.2f%8.2f\n", mediump[0], mediump[1], mediump[2]);
+		fclose(fp_endpoint);
+
 	}
 	else
 	{
