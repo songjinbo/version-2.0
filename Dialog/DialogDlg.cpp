@@ -280,6 +280,7 @@ int CountFrames()
 	ShExecInfo.hInstApp = NULL;
 	ShellExecuteEx(&ShExecInfo);
 	WaitForSingleObject(ShExecInfo.hProcess, INFINITE);
+	
 
 	fstream file_read(".\\data\\file_count.txt", ios::in);
 	file_read.getline(str_file_count, 80);

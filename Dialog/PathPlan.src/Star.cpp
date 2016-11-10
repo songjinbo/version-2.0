@@ -5,6 +5,7 @@
 #include <vector>
 #include "time.h"
 #include <algorithm>
+#include <string>
 #include "..\\DialogDlg.h"
 
 Star::Star(void)
@@ -30,6 +31,9 @@ using namespace std;
 #define flightsize 1 //仅用在路径规划这一部分
 #define bigsize 100000 //仅用在路径规划这一部分
 
+//外部函数
+string itos(double i);
+
 //全局变量
 extern double start_and_end[6]; //传给路径规划模块,有冲突隐患
 extern bool is_first_frame;
@@ -39,11 +43,12 @@ double endRealPosition[3] = { -2, -1, 4 };//终点坐标，用户界面输入
 extern vector<double> voxel_x; //本线程的输 入变量,GetVoxelTread的输出
 extern vector<double> voxel_y;
 extern vector<double> voxel_z;
+extern int count_voxel_file; //计数第几帧
 
 //本cpp文件中用到的变量
 string outputfile1_3DAStar = "./data/allPoint.txt";
 string outputfile2_3DAStar = "./data/drawPoint.txt";
-string endPoint_3DAStar = "./data/endPoint.txt";
+string endPoint_3DAStar;
 
 double minValue[3]; //x y z 的最小值
 double maxValue[3]; //x y z 的最大值
@@ -395,11 +400,11 @@ bool Star::Creatgraph()
 		Find_path(&startp);
 
 		//保存每一帧规划出的终点
+		endPoint_3DAStar = "./data/endPoint"+itos(count_voxel_file-1) + ".txt";
 		FILE* fp_endpoint;
 		if ((fp_endpoint = fopen(endPoint_3DAStar.c_str(), "a")) != 0)
 			fprintf(fp_endpoint, "%8.2f%8.2f%8.2f\n", mediump[0], mediump[1], mediump[2]);
 		fclose(fp_endpoint);
-
 	}
 	else
 	{
