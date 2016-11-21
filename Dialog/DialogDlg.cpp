@@ -225,6 +225,7 @@ int count_voxel_file = 1;//用于对体素化的数据进行计数
 //pathplan线程与主线程的接口
 double start_and_end[6]; //传给路径规划模块,有冲突隐患
 bool is_first_frame=1;//是否是第一帧
+double subEndx, subEndy, subEndz; //用来做标注的数据
 
 //getimage线程与getvoxel线程的接口变量
 CCriticalSection critical_rawdata;//控制vec_depth、vec_left和vec_position的访问
@@ -403,6 +404,25 @@ void CDialogDlg::InitThread()
 	}
 }
 
+
+
+//-------------------------------//
+//此函数用来给左相机图像做标注
+//-------------------------------//
+extern const double u0 = 116.502;
+extern const double v0 = 156.469;
+extern const double fx = 239.439;
+extern const double fy = 239.439;
+
+void Label(Mat & left, double px, double py, double pz)
+{
+	double z = pz * 128.0;
+	double y = (py * fy) / z + v0;
+	double x = (px * fx) / z + u0;
+
+	circle(left, cvPoint(x, y), 2, CV_RGB(255, 0, 0), 3, 8, 0);   //paint point
+}
+
 LRESULT CDialogDlg::DisplayImage(WPARAM wParam, LPARAM lParam)
 {
 	if (wParam == subpath_accessible) //显示图片的消息
@@ -426,6 +446,8 @@ LRESULT CDialogDlg::DisplayImage(WPARAM wParam, LPARAM lParam)
 		m_dpitch = pitch_angle;
 		m_dyaw = roll_angle;
 		UpdateData(false);         // 更新数据
+		Label(left_image, subEndx, subEndy, subEndz);
+
 		imshow(display_window_name[0], left_image);
 		imshow(display_window_name[1], depth_image_cv8u);
 		waitKey(1); //必须要有的，不能忘记

@@ -250,13 +250,6 @@ void drawSence(){
 	}
 }
 
-//LRESULT dialog_opengl::KeyControl(UINT wParam, LONG lParam)
-//{
-//	this->SetWindowText(L"test");
-//	OnKeyUp(wParam, 0, 0);
-//	return 0;
-//}
-
 bool dialog_opengl::bSetDCPixelFormat()
 {
 	static PIXELFORMATDESCRIPTOR pfd = {

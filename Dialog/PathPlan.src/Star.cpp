@@ -39,6 +39,7 @@ extern double start_and_end[6]; //传给路径规划模块,有冲突隐患
 extern bool is_first_frame;
 double startRealPosition[3]={-1.1,-5.5,2}; //起点坐标，用户界面输入
 double endRealPosition[3] = { -2, -1, 4 };//终点坐标，用户界面输入
+extern double subEndx,subEndy,subEndz;
 
 extern vector<double> voxel_x; //本线程的输 入变量,GetVoxelTread的输出
 extern vector<double> voxel_y;
@@ -400,11 +401,14 @@ bool Star::Creatgraph()
 		Find_path(&startp);
 
 		//保存每一帧规划出的终点
-		endPoint_3DAStar = "./data/endPoint"+itos(count_voxel_file-1) + ".txt";
-		FILE* fp_endpoint;
-		if ((fp_endpoint = fopen(endPoint_3DAStar.c_str(), "a")) != 0)
-			fprintf(fp_endpoint, "%8.2f%8.2f%8.2f\n", mediump[0], mediump[1], mediump[2]);
-		fclose(fp_endpoint);
+		//endPoint_3DAStar = "./data/endPoint"+itos(count_voxel_file-1) + ".txt";
+		//FILE* fp_endpoint;
+		//if ((fp_endpoint = fopen(endPoint_3DAStar.c_str(), "a")) != 0)
+		//	fprintf(fp_endpoint, "%8.2f%8.2f%8.2f\n", mediump[0], mediump[1], mediump[2]);
+		//fclose(fp_endpoint);
+		subEndx = mediump[0];
+		subEndy = mediump[1];
+		subEndz = mediump[2];
 	}
 	else
 	{
