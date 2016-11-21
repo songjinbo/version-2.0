@@ -22,7 +22,6 @@
 #define new DEBUG_NEW
 #endif
 
-
 // 用于应用程序“关于”菜单项的 CAboutDlg 对话框
 
 class CAboutDlg : public CDialogEx
@@ -205,6 +204,8 @@ using namespace std;
 #define MAXA 6400
 #define PI 3.1415926
 
+//clock_t start_time, finish_time;
+
 //主线程与三个子线程的接口
 volatile ProgressStatus progress_status = is_stopped; //有冲突隐患
 
@@ -259,6 +260,8 @@ void CDialogDlg::OnBnClickedStart()
 		GetDlgItem(IDC_START)->SetWindowTextW(_T("开始"));
 	}
 	GetDlgItem(IDC_START)->EnableWindow(TRUE);
+
+	//start_time = clock();
 }
 
 LPCWSTR stringToLPCWSTR(std::string orig);
@@ -429,6 +432,7 @@ LRESULT CDialogDlg::DisplayImage(WPARAM wParam, LPARAM lParam)
 		critical_single_rawdata.Unlock();
 		
 		Sleep(50);
+
 		m_pget_voxel_thread->PostThreadMessage(WM_GETVOXEL_BEGIN, NULL, NULL);	
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("成功获得一条路径"));
 	}
@@ -481,6 +485,7 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 	else if (wParam == get_all_voxel_complete)
 	{
 		GetDlgItem(IDC_STATUS_GETVOXEL)->SetWindowTextW(_T("运行结束，体素化完毕"));
+		m_ppath_plan_thread->PostThreadMessage(WM_PATHPLAN_BEGIN, NULL, NULL);
 	}
 	else if (wParam == path_accessible)
 	{
@@ -488,6 +493,10 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("运行结束，找到路径"));
 		GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("运行结束，找到路径"));
 		GetDlgItem(IDC_START)->SetWindowTextW(_T("开始"));
+		//finish_time = clock();
+		//double time = double(finish_time - start_time) / CLOCKS_PER_SEC;
+		//int tmp = 0;
+		//tmp = 1;
 	}
 	else if (wParam == no_path_accessible)
 	{
@@ -495,6 +504,10 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("运行结束，未找到路径"));
 		GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("运行结束，未找到路径"));
 		GetDlgItem(IDC_START)->SetWindowTextW(_T("开始"));
+		//finish_time = clock();
+		//double time = double(finish_time - start_time) / CLOCKS_PER_SEC;
+		//int tmp = 0;
+		//tmp = 1;
 	}
 
 	GetDlgItem(IDC_START)->EnableWindow(TRUE);

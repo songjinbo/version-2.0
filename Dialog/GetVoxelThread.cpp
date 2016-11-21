@@ -82,7 +82,7 @@ string treeFilename = "./data/depth.bt";
 string txtFilename;
 
 double res = 0.23; //resolution  
-double maxrange = 10;  //default:-1
+double maxrange = 10;  //default:-1 maxrange指有效的距离范围
 int max_scan_no = -1;  //default:-1
 bool detailedLog = false; //enable a detailed log file with statistics  default:false
 bool simpleUpdate = false; //simple scan insertion ray by ray instead of optimized  default:false
