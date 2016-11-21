@@ -14,7 +14,6 @@
 #include "DialogDlg.h"
 #include "GetImageThread.h"
 #include "GetVoxelThread.h"
-#include "dialog_opengl.h"
 #include "..\\SkinSharp\\SkinH.h"
 
 
@@ -92,7 +91,7 @@ void CDialogDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_STARTX, m_dstartx);
 	DDX_Text(pDX, IDC_STARTY, m_dstarty);
 	DDX_Text(pDX, IDC_STARTZ, m_dstartz);
-	DDX_Control(pDX, IDC_DISPLAYMAP, m_DisplayMap);
+	//DDX_Control(pDX, IDC_DISPLAYMAP, m_DisplayMap);
 }
 
 BEGIN_MESSAGE_MAP(CDialogDlg, CDialogEx)
@@ -138,7 +137,7 @@ BOOL CDialogDlg::OnInitDialog()
 	// TODO:  在此添加额外的初始化代码
 	SkinH_AttachEx(L"../SkinSharp/Skins/TVB.she", NULL);//添加皮肤
 
-	InitWindow(&m_DisplayLeft, &m_DisplayDepth,&m_DisplayMap);
+	InitWindow(&m_DisplayLeft, &m_DisplayDepth);
 	InitThread();
 	system("md data"); //创建一个文件夹，存放产生的数据
 
@@ -334,7 +333,7 @@ void CDialogDlg::InitVariable()
 
 char*display_window_name[2] = { "view_left", "view_depth" }; //这个变量不需要更改
 
-void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth, CStatic *m_DisplayMap)
+void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth)
 {
 	//创建窗口用来显示左相机图片
 	namedWindow(display_window_name[0], WINDOW_AUTOSIZE);
@@ -348,16 +347,6 @@ void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth, CSt
 	HWND hParent_depth = ::GetParent(hWnd_depth);
 	::ShowWindow(hParent_depth, SW_HIDE);
 	::SetParent(hWnd_depth, m_DisplayDepth->m_hWnd);
-	
-	//创建窗口用来显示三维地图
-	map_window.Create(IDD_DIALOG_OPENGL, this); //创建一个对话框
-	CRect rt;									//改变对话框的大小与picture control相等	
-	m_DisplayMap->GetClientRect(rt);
-	map_window.MoveWindow(rt);
-	HWND hParent_map = ::GetParent(map_window);
-	::ShowWindow(hParent_map, SW_HIDE); //原先用来显示的窗口消隐
-	::SetParent(map_window.m_hWnd, m_DisplayMap->m_hWnd); //将picture control设为对话框的父窗口
-	map_window.ShowWindow(SW_SHOW); //显示对话框
 
 	//设置标题字体格式
 	titleFont.CreatePointFont(300, L"楷体");
@@ -571,86 +560,4 @@ void CDialogDlg::OnBnClickedBrowse()
 		return;
 	}
 	UpdateData(FALSE);
-}
-
-//用来改变三维地图的视角
-extern float tranlaX;
-extern float tranlaY;
-extern float moveX;
-extern float moveY;
-extern float angle;
-extern float lookleft;
-extern float lookforward;
-void drawSence();
-BOOL CDialogDlg::PreTranslateMessage(MSG* pMsg)
-{
-	// TODO:  在此添加专用代码和/或调用基类
-	if (pMsg->message == WM_KEYUP)
-	{
-		switch (pMsg->wParam)
-		{
-		case 37:
-			angle--;
-			lookleft = 15 * sin(angle);
-			lookforward = 15 * cos(angle);
-			drawSence();
-			break;
-		case 38:
-			if (lookforward > 0)
-				lookforward--;
-			else
-				lookforward++;
-			drawSence();
-			break;
-		case 39:
-			angle++;
-			lookleft = 15 * sin(angle);
-			lookforward = 15 * cos(angle);
-			drawSence();
-			break;
-		case 40:
-			if (lookforward > 0)
-				lookforward++;
-			else
-				lookforward--;
-			drawSence();
-			break;
-		case 73:
-			tranlaY++;
-			drawSence();
-			break;
-		case 74:
-			tranlaX--;
-			drawSence();
-			break;
-		case 75:
-			tranlaY--;
-			drawSence();
-			break;
-		case 76:
-			tranlaX++;
-			drawSence();
-			break;
-		case 65:
-			moveX--;
-			drawSence();
-			break;
-		case 83:
-			moveY--;
-			drawSence();
-			break;
-		case 68:
-			moveX++;
-			drawSence();
-			break;
-		case 87:
-			moveY++;
-			drawSence();
-			break;
-		default:
-			break;
-		}
-	//  MessageBox(L"测试成功");
-	}
-	return CDialogEx::PreTranslateMessage(pMsg);
 }
