@@ -113,6 +113,7 @@
   <ItemGroup>
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="DialogDlg.h" />
+    <ClInclude Include="dialog_opengl.h" />
     <ClInclude Include="GetImageThread.h" />
     <ClInclude Include="GetVoxelThread.h" />
     <ClInclude Include="PathPlan.src\Node3D.h" />
@@ -125,6 +126,7 @@
   <ItemGroup>
     <ClCompile Include="Dialog.cpp" />
     <ClCompile Include="DialogDlg.cpp" />
+    <ClCompile Include="dialog_opengl.cpp" />
     <ClCompile Include="GetImageThread.cpp" />
     <ClCompile Include="GetVoxelThread.cpp" />
     <ClCompile Include="PathPlan.src\Node3D.cpp" />

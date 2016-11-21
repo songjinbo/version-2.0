@@ -9,6 +9,7 @@
 #include "GetVoxelThread.h"
 #include "PathPlanThread.h"
 //#include "C:\Program Files (x86)\Microsoft Visual Studio 11.0\VC\atlmfc\include\afxwin.h"
+#include "dialog_opengl.h"
 #include "Resource.h"
 
 
@@ -49,7 +50,7 @@ protected:
 	//创建线程需要用到
 	HANDLE hThread_get_image;
 	DWORD ThreadID_get_image;
-	void InitWindow(CStatic *, CStatic *);
+	void InitWindow(CStatic *, CStatic *, CStatic *);
 	void InitVariable();
 	LRESULT DisplayImage(WPARAM wParam, LPARAM lParam);
 	LRESULT UpdateStatus(WPARAM wParam, LPARAM lParam);
@@ -68,8 +69,9 @@ public:
 	double m_dstartx;
 	double m_dstarty;
 	double m_dstartz;
-//	CStatic m_DisplayMap;
-	//virtual BOOL PreTranslateMessage(MSG* pMsg);
+	CStatic m_DisplayMap;
+	dialog_opengl map_window;
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 private:
 	CFont titleFont;
 	CFont groupFont;

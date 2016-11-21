@@ -39,6 +39,9 @@
     <ClInclude Include="GetImageThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="dialog_opengl.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
     <ClInclude Include="PathPlanThread.h">
       <Filter>头文件</Filter>
     </ClInclude>
@@ -63,6 +66,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="GetImageThread.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="dialog_opengl.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="PathPlanThread.cpp">
