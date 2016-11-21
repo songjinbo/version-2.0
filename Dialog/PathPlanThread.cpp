@@ -43,7 +43,7 @@ void PathPlanThread::PathPlan(UINT wParam, LONG lParam)
 
 	Star star;
 	star.findpath();
-	getchar();
+	//getchar();
 
 	if (path_plan_status == subpath_accessible)
 	{
