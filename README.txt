@@ -23,3 +23,8 @@
 2、用得着用户界面输入的起始位置，但用不着终点位置
 3、将octomap、opengl、opencv和SkinSharp放在工程目录中了
 4、新建了output文件夹，项目生成的exe文件放在output中，同时将需要的dll文件放在output文件夹中
+
+2016-11-20版本修改内容
+1、修复了原先的bug
+	之前版本当体素化全部完成之后并不能够返回路径规划的最终结果（找到或者没找到最终路径），在	else if (wParam == get_all_voxel_complete)中加入
+	m_ppath_plan_thread->PostThreadMessage(WM_PATHPLAN_BEGIN, NULL, NULL);语句即可解决。

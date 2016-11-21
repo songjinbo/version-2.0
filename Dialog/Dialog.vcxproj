@@ -111,9 +111,6 @@
     </ResourceCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="Dialog.h" />
     <ClInclude Include="DialogDlg.h" />
     <ClInclude Include="dialog_opengl.h" />
@@ -150,6 +147,9 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="res\Dialog.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\README.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
