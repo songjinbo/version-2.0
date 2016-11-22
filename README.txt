@@ -28,3 +28,7 @@
 1、修复了原先的bug
 	之前版本当体素化全部完成之后并不能够返回路径规划的最终结果（找到或者没找到最终路径），在	else if (wParam == get_all_voxel_complete)中加入
 	m_ppath_plan_thread->PostThreadMessage(WM_PATHPLAN_BEGIN, NULL, NULL);语句即可解决。
+
+2016-11-21版本修改内容
+1、删除了三维显示部分吗，加上图像标注。
+2、针对“停止”按钮不灵敏的问题，将“开始/停止”按钮由一个改成两个。

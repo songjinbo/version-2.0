@@ -14,7 +14,6 @@
 #include "DialogDlg.h"
 #include "GetImageThread.h"
 #include "GetVoxelThread.h"
-#include "dialog_opengl.h"
 #include "..\\SkinSharp\\SkinH.h"
 
 
@@ -71,6 +70,8 @@ CDialogDlg::CDialogDlg(CWnd* pParent /*=NULL*/)
 	, m_dendy(0)
 	, m_dendz(0)
 	, m_dstartz(0)
+	, m_drunning_time(0)
+	, m_dfinish_frames(0)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 }
@@ -92,7 +93,10 @@ void CDialogDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_STARTX, m_dstartx);
 	DDX_Text(pDX, IDC_STARTY, m_dstarty);
 	DDX_Text(pDX, IDC_STARTZ, m_dstartz);
-	DDX_Control(pDX, IDC_DISPLAYMAP, m_DisplayMap);
+	//  DDX_Control(pDX, IDC_DISPLAYMAP, m_DisplayMap);
+	//  DDX_Text(pDX, IDC_FINISH_FRAMES, m_drunning_time);
+	DDX_Text(pDX, IDC_FINISH_FRAMES, m_dfinish_frames);
+	DDX_Text(pDX, IDC_RUNNING_TIME, m_drunning_time);
 }
 
 BEGIN_MESSAGE_MAP(CDialogDlg, CDialogEx)
@@ -103,6 +107,7 @@ BEGIN_MESSAGE_MAP(CDialogDlg, CDialogEx)
 	ON_MESSAGE(WM_DISPLAY_IMAGE, DisplayImage)
 	ON_MESSAGE(WM_UPDATE_STATUS, UpdateStatus)
 	ON_BN_CLICKED(IDC_BROWSE, &CDialogDlg::OnBnClickedBrowse)
+	ON_BN_CLICKED(IDC_STOP, &CDialogDlg::OnBnClickedStop)
 END_MESSAGE_MAP()
 
 
@@ -138,7 +143,7 @@ BOOL CDialogDlg::OnInitDialog()
 	// TODO:  在此添加额外的初始化代码
 	SkinH_AttachEx(L"../SkinSharp/Skins/TVB.she", NULL);//添加皮肤
 
-	InitWindow(&m_DisplayLeft, &m_DisplayDepth,&m_DisplayMap);
+	InitWindow(&m_DisplayLeft, &m_DisplayDepth);
 	InitThread();
 	system("md data"); //创建一个文件夹，存放产生的数据
 
@@ -204,8 +209,6 @@ using namespace std;
 #define MAXA 6400
 #define PI 3.1415926
 
-//clock_t start_time, finish_time;
-
 //主线程与三个子线程的接口
 volatile ProgressStatus progress_status = is_stopped; //有冲突隐患
 
@@ -225,6 +228,7 @@ int count_voxel_file = 1;//用于对体素化的数据进行计数
 //pathplan线程与主线程的接口
 double start_and_end[6]; //传给路径规划模块,有冲突隐患
 bool is_first_frame=1;//是否是第一帧
+double subEndx, subEndy, subEndz; //用来做标注的数据
 
 //getimage线程与getvoxel线程的接口变量
 CCriticalSection critical_rawdata;//控制vec_depth、vec_left和vec_position的访问
@@ -237,31 +241,36 @@ vector<double> voxel_x; //GetVoxelThread的输出,PathPlanThread的输入
 vector<double> voxel_y;
 vector<double> voxel_z;
 
+clock_t start_time, finish_time; //这两个变量分别存储运行开始时间和结束时间
 
 void CDialogDlg::OnBnClickedStart()
 {
-	this->SetWindowText(L"无人机智能飞行演示系统");
 	GetDlgItem(IDC_START)->EnableWindow(FALSE);
-	if (progress_status == is_stopped || progress_status == complete)
-	{
-		//初始化过程，可以多次点击展示
-		InitVariable();
-		//开始子线程的两个函数
-		m_pget_image_thread->PostThreadMessage(WM_GETIMAGE_BEGIN, NULL, NULL);
-		GetDlgItem(IDC_STATUS_GETIMAGE)->SetWindowTextW(_T("GetImage函数正在运行"));
-		m_pget_voxel_thread->PostThreadMessage(WM_GETVOXEL_BEGIN, NULL, NULL);
-		GetDlgItem(IDC_STATUS_GETVOXEL)->SetWindowTextW(_T("GetVoxel函数正在运行"));
-	}
-	else
-	{
-		//不能直接释放线程，让线程自己return，然后再释放
-		progress_status = is_stopped;	
-		GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("终止进程"));//清空状态栏
-		GetDlgItem(IDC_START)->SetWindowTextW(_T("开始"));
-	}
-	GetDlgItem(IDC_START)->EnableWindow(TRUE);
 
-	//start_time = clock();
+	//初始化过程，可以多次点击展示
+	InitVariable();
+	progress_status = is_ruuning;
+
+	m_pget_image_thread->PostThreadMessage(WM_GETIMAGE_BEGIN, NULL, NULL);
+	GetDlgItem(IDC_STATUS_GETIMAGE)->SetWindowTextW(_T("GetImage函数正在运行"));
+	m_pget_voxel_thread->PostThreadMessage(WM_GETVOXEL_BEGIN, NULL, NULL);
+	GetDlgItem(IDC_STATUS_GETVOXEL)->SetWindowTextW(_T("GetVoxel函数正在运行"));
+	GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("正在运行"));//清空状态栏
+	
+	start_time = clock();
+	
+	GetDlgItem(IDC_START)->EnableWindow(TRUE);
+}
+
+void CDialogDlg::OnBnClickedStop()
+{
+	// TODO:  在此添加控件通知处理程序代码
+	GetDlgItem(IDC_STOP)->EnableWindow(FALSE);
+
+	progress_status = is_stopped;
+	GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("终止进程"));//清空状态栏
+
+	GetDlgItem(IDC_STOP)->EnableWindow(TRUE);
 }
 
 LPCWSTR stringToLPCWSTR(std::string orig);
@@ -300,9 +309,6 @@ void CDialogDlg::InitVariable()
 	//初始化过程，可以多次点击展示
 
 	//主线程与三个子线程的接口
-	progress_status = is_ruuning;
-	GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("正在运行"));//清空状态栏
-	GetDlgItem(IDC_START)->SetWindowTextW(_T("停止"));
 	//与getvoxel线程的接口
 	depth_image = Mat(Scalar(0));
 	left_image = Mat(Scalar(0));
@@ -333,8 +339,9 @@ void CDialogDlg::InitVariable()
 
 char*display_window_name[2] = { "view_left", "view_depth" }; //这个变量不需要更改
 
-void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth, CStatic *m_DisplayMap)
+void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth)
 {
+	this->SetWindowText(L"无人机智能飞行演示系统");
 	//创建窗口用来显示左相机图片
 	namedWindow(display_window_name[0], WINDOW_AUTOSIZE);
 	HWND hWnd_left = (HWND)cvGetWindowHandle(display_window_name[0]);
@@ -347,16 +354,6 @@ void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth, CSt
 	HWND hParent_depth = ::GetParent(hWnd_depth);
 	::ShowWindow(hParent_depth, SW_HIDE);
 	::SetParent(hWnd_depth, m_DisplayDepth->m_hWnd);
-	
-	//创建窗口用来显示三维地图
-	map_window.Create(IDD_DIALOG_OPENGL, this); //创建一个对话框
-	CRect rt;									//改变对话框的大小与picture control相等	
-	m_DisplayMap->GetClientRect(rt);
-	map_window.MoveWindow(rt);
-	HWND hParent_map = ::GetParent(map_window);
-	::ShowWindow(hParent_map, SW_HIDE); //原先用来显示的窗口消隐
-	::SetParent(map_window.m_hWnd, m_DisplayMap->m_hWnd); //将picture control设为对话框的父窗口
-	map_window.ShowWindow(SW_SHOW); //显示对话框
 
 	//设置标题字体格式
 	titleFont.CreatePointFont(300, L"楷体");
@@ -369,7 +366,6 @@ void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth, CSt
 	GetDlgItem(IDC_END_POSI)->SetFont(&groupFont);
 	GetDlgItem(IDC_POSE)->SetFont(&groupFont);
 	GetDlgItem(IDC_SENSOR_DATA)->SetFont(&groupFont);
-	GetDlgItem(IDC_3D_SCENE)->SetFont(&groupFont);
 
 	//设置位姿数据的字体格式
 	poseFont.CreateFont(20, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
@@ -379,7 +375,20 @@ void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth, CSt
 	GetDlgItem(IDC_ROLL)->SetFont(&poseFont);
 	GetDlgItem(IDC_PITCH)->SetFont(&poseFont);
 	GetDlgItem(IDC_YAW)->SetFont(&poseFont);
-	GetDlgItem(IDC_STATIC)->SetFont(&poseFont);
+	GetDlgItem(IDC_RUNNING_TIME)->SetFont(&poseFont);
+	GetDlgItem(IDC_FINISH_FRAMES)->SetFont(&poseFont);
+	
+	//设置静态文本框的文字格式
+	staticFont.CreateFont(18, 0, 0, 0, FW_MEDIUM, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
+	GetDlgItem(IDC_STATIC_X)->SetFont(&staticFont);
+	GetDlgItem(IDC_STATIC_Y)->SetFont(&staticFont);
+	GetDlgItem(IDC_STATIC_Z)->SetFont(&staticFont);
+	GetDlgItem(IDC_STATIC_ROLL)->SetFont(&staticFont);
+	GetDlgItem(IDC_STATIC_YAW)->SetFont(&staticFont);
+	GetDlgItem(IDC_STATIC_PITCH)->SetFont(&staticFont);
+	GetDlgItem(IDC_STATIC_RUNNING_TIME)->SetFont(&staticFont);
+	GetDlgItem(IDC_STATIC_FINISH_FRAMES)->SetFont(&staticFont);
+
 
 	//m_editControl.SetWindowText("这是一个测试文件！");
 	//GetDlgItem(IDC_STATIC1)->SetFont(f);
@@ -401,6 +410,23 @@ void CDialogDlg::InitThread()
 		GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("线程创建失败"));
 		GetDlgItem(IDC_START)->EnableWindow(FALSE);
 	}
+}
+
+//-------------------------------//
+//此函数用来给左相机图像做标注
+//-------------------------------//
+extern const double u0 = 116.502;
+extern const double v0 = 156.469;
+extern const double fx = 239.439;
+extern const double fy = 239.439;
+
+void Label(Mat & left, double px, double py, double pz)
+{
+	double z = pz * 128.0;
+	double y = (py * fy) / z + v0;
+	double x = (px * fx) / z + u0;
+
+	circle(left, cvPoint(x, y), 2, CV_RGB(255, 0, 0), 3, 8, 0);   //paint point
 }
 
 LRESULT CDialogDlg::DisplayImage(WPARAM wParam, LPARAM lParam)
@@ -426,6 +452,8 @@ LRESULT CDialogDlg::DisplayImage(WPARAM wParam, LPARAM lParam)
 		m_dpitch = pitch_angle;
 		m_dyaw = roll_angle;
 		UpdateData(false);         // 更新数据
+		Label(left_image, subEndx, subEndy, subEndz);
+
 		imshow(display_window_name[0], left_image);
 		imshow(display_window_name[1], depth_image_cv8u);
 		waitKey(1); //必须要有的，不能忘记
@@ -435,6 +463,13 @@ LRESULT CDialogDlg::DisplayImage(WPARAM wParam, LPARAM lParam)
 
 		m_pget_voxel_thread->PostThreadMessage(WM_GETVOXEL_BEGIN, NULL, NULL);	
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("成功获得一条路径"));
+
+		//显示运行的时间和总帧数
+		finish_time = clock();
+		double time = double(finish_time - start_time) / CLOCKS_PER_SEC;
+		m_drunning_time = time;
+		m_dfinish_frames = count_voxel_file-1;
+		UpdateData(FALSE);
 	}
 	return 1;
 }
@@ -468,10 +503,12 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 	else if (wParam == get_voxel_is_stopped)
 	{
 		GetDlgItem(IDC_STATUS_GETVOXEL)->SetWindowTextW(_T("运行结束，GetVoxel函数被强制结束"));
+		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("运行结束，PathPlan函数被强制结束"));
 	}
 	else if (wParam == path_plan_is_stopped)
 	{
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("运行结束，PathPlan函数被强制结束"));
+		GetDlgItem(IDC_STATUS_GETVOXEL)->SetWindowTextW(_T("运行结束，GetVoxel函数被强制结束"));
 	}
 	else if (wParam == get_one_voxel)
 	{
@@ -493,10 +530,13 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("运行结束，找到路径"));
 		GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("运行结束，找到路径"));
 		GetDlgItem(IDC_START)->SetWindowTextW(_T("开始"));
-		//finish_time = clock();
-		//double time = double(finish_time - start_time) / CLOCKS_PER_SEC;
-		//int tmp = 0;
-		//tmp = 1;
+	
+		//显示运行的时间和总帧数
+		finish_time = clock();
+		double time = double(finish_time - start_time) / CLOCKS_PER_SEC;
+		m_drunning_time = time;
+		m_dfinish_frames = count_voxel_file-1;
+		UpdateData(FALSE);
 	}
 	else if (wParam == no_path_accessible)
 	{
@@ -504,10 +544,13 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("运行结束，未找到路径"));
 		GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("运行结束，未找到路径"));
 		GetDlgItem(IDC_START)->SetWindowTextW(_T("开始"));
-		//finish_time = clock();
-		//double time = double(finish_time - start_time) / CLOCKS_PER_SEC;
-		//int tmp = 0;
-		//tmp = 1;
+		
+		//显示运行的时间和总帧数
+		finish_time = clock();
+		double time = double(finish_time - start_time) / CLOCKS_PER_SEC;
+		m_drunning_time = time;
+		m_dfinish_frames = count_voxel_file-1;
+		UpdateData(FALSE);
 	}
 
 	GetDlgItem(IDC_START)->EnableWindow(TRUE);
@@ -549,86 +592,4 @@ void CDialogDlg::OnBnClickedBrowse()
 		return;
 	}
 	UpdateData(FALSE);
-}
-
-//用来改变三维地图的视角
-extern float tranlaX;
-extern float tranlaY;
-extern float moveX;
-extern float moveY;
-extern float angle;
-extern float lookleft;
-extern float lookforward;
-void drawSence();
-BOOL CDialogDlg::PreTranslateMessage(MSG* pMsg)
-{
-	// TODO:  在此添加专用代码和/或调用基类
-	if (pMsg->message == WM_KEYUP)
-	{
-		switch (pMsg->wParam)
-		{
-		case 37:
-			angle--;
-			lookleft = 15 * sin(angle);
-			lookforward = 15 * cos(angle);
-			drawSence();
-			break;
-		case 38:
-			if (lookforward > 0)
-				lookforward--;
-			else
-				lookforward++;
-			drawSence();
-			break;
-		case 39:
-			angle++;
-			lookleft = 15 * sin(angle);
-			lookforward = 15 * cos(angle);
-			drawSence();
-			break;
-		case 40:
-			if (lookforward > 0)
-				lookforward++;
-			else
-				lookforward--;
-			drawSence();
-			break;
-		case 73:
-			tranlaY++;
-			drawSence();
-			break;
-		case 74:
-			tranlaX--;
-			drawSence();
-			break;
-		case 75:
-			tranlaY--;
-			drawSence();
-			break;
-		case 76:
-			tranlaX++;
-			drawSence();
-			break;
-		case 65:
-			moveX--;
-			drawSence();
-			break;
-		case 83:
-			moveY--;
-			drawSence();
-			break;
-		case 68:
-			moveX++;
-			drawSence();
-			break;
-		case 87:
-			moveY++;
-			drawSence();
-			break;
-		default:
-			break;
-		}
-	//  MessageBox(L"测试成功");
-	}
-	return CDialogEx::PreTranslateMessage(pMsg);
 }

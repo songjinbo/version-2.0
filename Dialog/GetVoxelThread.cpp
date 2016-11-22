@@ -370,12 +370,20 @@ void GetVoxelThread::GetVoxel(UINT wParam, LONG lParam)
 
 	else
 	{
-		if (get_image_status == get_image_complete) //标志这一GetImage函数是否已经结束
+		if (progress_status == is_stopped)
+		{
+			get_voxel_status = get_voxel_is_stopped;
+			::PostMessage((HWND)(GetMainWnd()->GetSafeHwnd()), WM_UPDATE_STATUS, get_voxel_status, NULL);
+			return;
+		}
+
+		else if (get_image_status == get_image_complete) //标志这一GetImage函数是否已经结束
 		{
 			get_voxel_status = get_all_voxel_complete;
 			::PostMessage((HWND)(GetMainWnd()->GetSafeHwnd()), WM_UPDATE_STATUS, get_voxel_status, NULL);
 			return;
 		}
+
 		else if (get_image_status == no_file) //标志这一GetImage函数是否已经结束
 		{
 			get_voxel_status = get_all_voxel_complete;
