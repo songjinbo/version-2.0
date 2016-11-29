@@ -423,7 +423,8 @@ extern const double fy = 239.439;
 void Label(Mat & left, double px, double py, double pz)
 {
 	double z = pz * 128.0;
-	double y = (py * fy) / z + v0;
+	double y = v0/2-(py * fy) / z;
+	//double y = (py * fy) / z + v0;
 	double x = (px * fx) / z + u0;
 
 	circle(left, cvPoint(x, y), 2, CV_RGB(255, 0, 0), 3, 8, 0);   //paint point
