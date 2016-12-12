@@ -62,12 +62,12 @@ public:
 	GetImageThread* m_pget_image_thread;
 	GetVoxelThread *m_pget_voxel_thread;
 	PathPlanThread *m_ppath_plan_thread;
-	double m_dendx;
-	double m_dendy;
-	double m_dendz;
-	double m_dstartx;
-	double m_dstarty;
-	double m_dstartz;
+//	double m_dendx;
+//	double m_dendy;
+//	double m_dendz;
+//	double m_dstartx;
+//	double m_dstarty;
+//	double m_dstartz;
 private:
 	CFont titleFont;
 	CFont groupFont;

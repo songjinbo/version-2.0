@@ -35,7 +35,7 @@ using namespace std;
 string itos(double i);
 
 //全局变量
-extern double start_and_end[6]; //传给路径规划模块,有冲突隐患
+//extern double start_and_end[6]; //传给路径规划模块,有冲突隐患
 extern bool is_first_frame;
 double startRealPosition[3]={-1.1,-5.5,2}; //起点坐标，用户界面输入
 double endRealPosition[3] = { -2, -1, 4 };//终点坐标，用户界面输入
@@ -69,13 +69,21 @@ bool Star::Creatgraph()
 	int i,j,k;
 
 	//首先给起点和终点坐标赋值
-	startRealPosition[0] = start_and_end[0];
-	startRealPosition[1] = start_and_end[1];
-	startRealPosition[2] = start_and_end[2];
-	
-	endRealPosition[0] = start_and_end[3];
-	endRealPosition[1] = start_and_end[4];
-	endRealPosition[2] = start_and_end[5];
+	//startRealPosition[0] = start_and_end[0];
+	//startRealPosition[1] = start_and_end[1];
+	//startRealPosition[2] = start_and_end[2];
+	//
+	//endRealPosition[0] = start_and_end[3];
+	//endRealPosition[1] = start_and_end[4];
+	//endRealPosition[2] = start_and_end[5];
+
+	startRealPosition[0] = 0;
+	startRealPosition[1] = 0;
+	startRealPosition[2] = 0;
+
+	endRealPosition[0] = 0;
+	endRealPosition[1] = 0;
+	endRealPosition[2] = 0;
 
 	//---------initialization ----------------------
 	if (voxel_x.size() == 0) //在引用voxel_x[0]之前，必须用这个条件语句进行判断。否则可能出错

@@ -64,12 +64,12 @@ CDialogDlg::CDialogDlg(CWnd* pParent /*=NULL*/)
 	, m_dyaw(0)
 	, m_dpitch(0)
 	, m_droll(0)
-	, m_dstartx(0)
-	, m_dendx(0)
-	, m_dstarty(0)
-	, m_dendy(0)
-	, m_dendz(0)
-	, m_dstartz(0)
+	//, m_dstartx(0)
+	//, m_dendx(0)
+	//, m_dstarty(0)
+	//, m_dendy(0)
+	//, m_dendz(0)
+	//, m_dstartz(0)
 	, m_drunning_time(0)
 	, m_dfinish_frames(0)
 {
@@ -87,12 +87,12 @@ void CDialogDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_ROLL, m_droll);
 	DDX_Control(pDX, IDC_DISPLAYLEFT, m_DisplayLeft);
 	DDX_Control(pDX, IDC_DISPLAYDEPTH, m_DisplayDepth);
-	DDX_Text(pDX, IDC_ENDX, m_dendx);
-	DDX_Text(pDX, IDC_ENDY, m_dendy);
-	DDX_Text(pDX, IDC_ENDZ, m_dendz);
-	DDX_Text(pDX, IDC_STARTX, m_dstartx);
-	DDX_Text(pDX, IDC_STARTY, m_dstarty);
-	DDX_Text(pDX, IDC_STARTZ, m_dstartz);
+	//  DDX_Text(pDX, IDC_ENDX, m_dendx);
+	//  DDX_Text(pDX, IDC_ENDY, m_dendy);
+	//  DDX_Text(pDX, IDC_ENDZ, m_dendz);
+	//  DDX_Text(pDX, IDC_STARTX, m_dstartx);
+	//  DDX_Text(pDX, IDC_STARTY, m_dstarty);
+	//  DDX_Text(pDX, IDC_STARTZ, m_dstartz);
 	//  DDX_Control(pDX, IDC_DISPLAYMAP, m_DisplayMap);
 	//  DDX_Text(pDX, IDC_FINISH_FRAMES, m_drunning_time);
 	DDX_Text(pDX, IDC_FINISH_FRAMES, m_dfinish_frames);
@@ -226,7 +226,7 @@ int no; //文件编号，用在顺序查找文件名
 int count_voxel_file = 1;//用于对体素化的数据进行计数
 
 //pathplan线程与主线程的接口
-double start_and_end[6]; //传给路径规划模块,有冲突隐患
+//double start_and_end[6]; //传给路径规划模块,有冲突隐患
 bool is_first_frame=1;//是否是第一帧
 double subEndx, subEndy, subEndz; //用来做标注的数据
 
@@ -320,12 +320,12 @@ void CDialogDlg::InitVariable()
 	count_voxel_file = 1;
 	//与pathplan的接口
 	UpdateData(TRUE);
-	start_and_end[0] = m_dstartx;
-	start_and_end[1] = m_dstarty;
-	start_and_end[2] = m_dstartz;
-	start_and_end[3] = m_dendx;
-	start_and_end[4] = m_dendy;
-	start_and_end[5] = m_dendz;
+	//start_and_end[0] = m_dstartx;
+	//start_and_end[1] = m_dstarty;
+	//start_and_end[2] = m_dstartz;
+	//start_and_end[3] = m_dendx;
+	//start_and_end[4] = m_dendy;
+	//start_and_end[5] = m_dendz;
 	is_first_frame = 1; //置标志位
 	//getimage与getvoxel的接口
 	vec_depth.clear();
@@ -361,9 +361,9 @@ void CDialogDlg::InitWindow(CStatic *m_DisplayLeft, CStatic *m_DisplayDepth)
 
 	//设置group box控件的字体格式
 	groupFont.CreateFont(20, 0, 0, 0, FW_BLACK, FALSE, FALSE, 0, ANSI_CHARSET, OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH | FF_SWISS, _T("Arial"));
-	GetDlgItem(IDC_START_POSI)->SetWindowText(L"起点坐标");
-	GetDlgItem(IDC_START_POSI)->SetFont(&groupFont);
-	GetDlgItem(IDC_END_POSI)->SetFont(&groupFont);
+	//GetDlgItem(IDC_START_POSI)->SetWindowText(L"起点坐标");
+	//GetDlgItem(IDC_START_POSI)->SetFont(&groupFont);
+	//GetDlgItem(IDC_END_POSI)->SetFont(&groupFont);
 	GetDlgItem(IDC_POSE)->SetFont(&groupFont);
 	GetDlgItem(IDC_SENSOR_DATA)->SetFont(&groupFont);
 
@@ -541,9 +541,9 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 	}
 	else if (wParam == no_path_accessible)
 	{
-		progress_status = complete;
+		//progress_status = complete;
 		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("运行结束，未找到路径"));
-		GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("运行结束，未找到路径"));
+		//GetDlgItem(IDC_STATUS)->SetWindowTextW(_T("运行结束，未找到路径"));
 		GetDlgItem(IDC_START)->SetWindowTextW(_T("开始"));
 		
 		//显示运行的时间和总帧数
@@ -552,6 +552,10 @@ LRESULT CDialogDlg::UpdateStatus(WPARAM wParam, LPARAM lParam)
 		m_drunning_time = time;
 		m_dfinish_frames = count_voxel_file-1;
 		UpdateData(FALSE);
+
+		is_first_frame = 1;
+		m_pget_voxel_thread->PostThreadMessage(WM_GETVOXEL_BEGIN, NULL, NULL);
+		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("成功获得一条路径"));
 	}
 
 	GetDlgItem(IDC_START)->EnableWindow(TRUE);
