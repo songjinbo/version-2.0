@@ -463,7 +463,7 @@ LRESULT CDialogDlg::DisplayImage(WPARAM wParam, LPARAM lParam)
 		Sleep(50);
 
 		m_pget_voxel_thread->PostThreadMessage(WM_GETVOXEL_BEGIN, NULL, NULL);	
-		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("成功获得一条路径"));
+		GetDlgItem(IDC_STATUS_PATHPLAN)->SetWindowTextW(_T("成功获得子路径"));
 
 		//显示运行的时间和总帧数
 		finish_time = clock();
